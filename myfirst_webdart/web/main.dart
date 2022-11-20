@@ -1,4 +1,5 @@
 import 'dart:html';
+import 'dart:collection';
 
 void main() {
   var rosco = Rosco();
@@ -12,12 +13,58 @@ void main() {
     var respuesta = (querySelector("#textRespuesta") as InputElement).value;
     var letra = querySelector("#letra")?.text;
     print('respuesta = $respuesta letra = $letra');
+
+    String mensaje = rosco.evaluarRespuesta(letra!, respuesta!);
+
+    print('El mensaje es $mensaje');
   });
 }
 
 class Rosco {
-  late List<Pregunta> roscoPreguntas;
+  late List<Pregunta> roscoPreguntas = [];
 
+  RoscoApi roscoApi = new RoscoApi();
+
+  Rosco() {
+    roscoPreguntas.addAll(roscoApi.obtenerRoscos());
+  }
+
+  Pregunta obtenerPregunta() {
+    return roscoPreguntas[0];
+  }
+
+  Pregunta pasaPalabra() {
+    return Pregunta('', '', '');
+  }
+
+  String evaluarRespuesta(String letra, String respuesta) {
+    String mensaje = '';
+
+    var esCorrecta = roscoPreguntas
+        .any((rosco) => rosco.letra == letra && rosco.respuesta == respuesta);
+
+    // if (esCorrecta == true) {
+    //   mensaje = 'Letra $letra respuesta correcta';
+    // } else {
+    //   mensaje = 'Letra $letra respuesta incorrecta';
+    // }
+
+    mensaje = esCorrecta ? 'Letra $letra respuesta correcta' :
+      'Letra $letra respuesta incorrecta';
+
+    return mensaje;
+  }
+}
+
+class Pregunta {
+  String? letra;
+  String? definicion;
+  String? respuesta;
+
+  Pregunta(this.letra, this.definicion, this.respuesta);
+}
+
+class Db {
   static List letras = const ['A', 'B', 'C', 'D', 'E', 'F'];
 
   static List definiciones = const [
@@ -37,35 +84,22 @@ class Rosco {
     'Eterno',
     'Farmacia'
   ];
-
-  Rosco() {
-    roscoPreguntas = [];
-    for (var letra in letras) {
-      var index = letras.indexOf(letra);
-      var roscoPregunta =
-          Pregunta(letra, definiciones[index], respuestas[index]);
-      roscoPreguntas.add(roscoPregunta);
-    }
-  }
-
-  Pregunta obtenerPregunta() {
-    return roscoPreguntas[0];
-  }
-
-  Pregunta pasaPalabra() {
-    return Pregunta('', '', '');
-  }
-
-  String evaluarRespuesta(String letra, String respuesta) {
-    var esCorrecta = roscoPreguntas.any((rosco) => rosco.letra == letra && 
-    rosco.respuesta == respuesta);
-  }
 }
 
-class Pregunta {
-  String? letra;
-  String? definicion;
-  String? respuesta;
+class RoscoApi {
+  List<Pregunta> roscoPreguntas = [];
 
-  Pregunta(this.letra, this.definicion, this.respuesta);
+  List<Pregunta> obtenerRoscos () {
+
+    roscoPreguntas = [];
+    for (var letra in Db.letras) {
+      var index = Db.letras.indexOf(letra);
+      var roscoPregunta =
+          Pregunta(letra, Db.definiciones[index], Db.respuestas[index]);
+      roscoPreguntas.add(roscoPregunta);
+    }
+
+    return roscoPreguntas;
+
+  }
 }
