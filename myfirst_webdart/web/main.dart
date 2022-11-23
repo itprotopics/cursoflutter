@@ -1,13 +1,15 @@
+
 import 'dart:html';
 import 'dart:collection';
+
 
 void main() {
   var rosco = Rosco();
 
-  var primeraDefinicion = rosco.obtenerPregunta();
+  var primeraDefinicion = rosco.obtenerPregunta(true);
 
-  querySelector("#letra")?.text = primeraDefinicion.letra;
-  querySelector("#pregunta")?.text = primeraDefinicion.definicion;
+  querySelector("#letra")?.text = primeraDefinicion?.letra;
+  querySelector("#pregunta")?.text = primeraDefinicion?.definicion;
 
   querySelector("#btnEnviar")?.onClick.listen((event) {
     var respuesta = (querySelector("#textRespuesta") as InputElement).value;
@@ -16,21 +18,47 @@ void main() {
 
     String mensaje = rosco.evaluarRespuesta(letra!, respuesta!);
 
+    Pregunta? nuevaPregunta = rosco.obtenerPregunta(false);
+
+    print('La nueva pregunta es $nuevaPregunta');
+
+    actualizarUI(nuevaPregunta!);
+
     print('El mensaje es $mensaje');
   });
 }
 
-class Rosco {
-  late List<Pregunta> roscoPreguntas = [];
+void actualizarUI(Pregunta pregunta) {
+  querySelector('#letra')?.text = pregunta.letra;
+  querySelector('#pregunta')?.text = pregunta.definicion;
+  querySelector('#textRespuesta')?.text = '';
+}
 
+class Rosco {
+  late ListQueue<Pregunta> roscoPreguntas = ListQueue<Pregunta>();
+  List<String> respondidas = [];
   RoscoApi roscoApi = new RoscoApi();
 
   Rosco() {
     roscoPreguntas.addAll(roscoApi.obtenerRoscos());
   }
 
-  Pregunta obtenerPregunta() {
-    return roscoPreguntas[0];
+  Pregunta? obtenerPregunta(bool inicial) {
+  
+    if (inicial)  return roscoPreguntas.first;
+    
+    Pregunta? siguientePregunta = roscoPreguntas.firstWhere (
+          (rosco) => !respondidas.any((x) => x == rosco.letra), orElse: () => Pregunta('','','') );
+    
+
+    // ignore: unnecessary_null_comparison
+    if (siguientePregunta.letra == '') {
+      respondidas = [];
+      siguientePregunta = obtenerPregunta(false);
+    }
+
+    print('La pregunta que se pregresa en obtener es ${siguientePregunta!.letra}');
+    return siguientePregunta;
   }
 
   Pregunta pasaPalabra() {
@@ -40,8 +68,12 @@ class Rosco {
   String evaluarRespuesta(String letra, String respuesta) {
     String mensaje = '';
 
-    var esCorrecta = roscoPreguntas
-        .any((rosco) => rosco.letra == letra && rosco.respuesta == respuesta);
+    Pregunta pregunta =
+        roscoPreguntas.firstWhere((rosco) => rosco.letra == letra);
+
+    respondidas.add(pregunta.letra!);
+
+    print('Las letras respondidas son $respondidas');
 
     // if (esCorrecta == true) {
     //   mensaje = 'Letra $letra respuesta correcta';
@@ -49,11 +81,16 @@ class Rosco {
     //   mensaje = 'Letra $letra respuesta incorrecta';
     // }
 
-    mensaje = esCorrecta ? 'Letra $letra respuesta correcta' :
-      'Letra $letra respuesta incorrecta';
+    mensaje = pregunta.respuesta == respuesta
+        ? 'Letra $letra respuesta correcta'
+        : 'Letra $letra respuesta incorrecta';
+
+    print('El mensaje que se mostrara es $mensaje');
 
     return mensaje;
   }
+
+  //String? newMethod(Pregunta pregunta) => pregunta.letra;
 }
 
 class Pregunta {
@@ -62,6 +99,7 @@ class Pregunta {
   String? respuesta;
 
   Pregunta(this.letra, this.definicion, this.respuesta);
+
 }
 
 class Db {
@@ -89,8 +127,7 @@ class Db {
 class RoscoApi {
   List<Pregunta> roscoPreguntas = [];
 
-  List<Pregunta> obtenerRoscos () {
-
+  List<Pregunta> obtenerRoscos() {
     roscoPreguntas = [];
     for (var letra in Db.letras) {
       var index = Db.letras.indexOf(letra);
@@ -100,6 +137,5 @@ class RoscoApi {
     }
 
     return roscoPreguntas;
-
   }
 }
