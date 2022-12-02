@@ -18,8 +18,15 @@ class MyApp extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               Card(
-                child: Column(children: [],)
-              )
+                  child: Column(
+                children: <Widget> [
+                  const Text(
+                    'JLAM',
+                    style: TextStyle(color: Colors.grey, fontSize: 30.2),
+                  ),
+                  const Text('MAU'),
+                ],
+              ))
             ]),
       ),
     );
