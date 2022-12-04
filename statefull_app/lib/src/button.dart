@@ -13,13 +13,24 @@ class _MyButtonState extends State<MyButton> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Statefull widget'),
+        backgroundColor: Colors.orangeAccent,
       ),
       body: Container(
+          child: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[const Text('Jose'), const Text('Alavez')],
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            const Text(
+              'Jose',
+              style: TextStyle(fontSize: 40),
+            ),
+            ElevatedButton(
+              child: Text('Actualizar'),
+              onPressed: () {},
+            )
+          ],
         ),
-      ),
+      )),
     );
   }
 }
